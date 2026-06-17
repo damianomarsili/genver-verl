@@ -1,0 +1,19 @@
+Reply with exactly one <bbox_2d> block. Inside <bbox_2d>, write one object per line in this exact format:
+1: label="object_name", [x_min, y_min, x_max, y_max]
+
+Example (multiple objects in ONE <bbox_2d> block):
+<bbox_2d>
+1: label="chair", [120, 300, 280, 780]
+2: label="table", [350, 420, 820, 920]
+3: label="lamp", [840, 120, 960, 420]
+</bbox_2d>
+
+Rules:
+- Coordinates must be in [0,1000].
+- Use x_min, y_min, x_max, y_max.
+- Locate all query-relevant objects and include every relevant object.
+- Do not split objects across multiple <bbox_2d> blocks.
+- Indices must be sequential starting from 1, one index per line.
+- Each detected object label must appear in the query text.
+- Do not use semicolons or object: prefixes.
+- Do not output anything outside <bbox_2d> ... </bbox_2d> for this step.
