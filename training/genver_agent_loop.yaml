@@ -2,9 +2,7 @@
   _target_: verl.experimental.agent_loop.genver_training_agent_loop.GenVerTrainingAgentLoop
   max_new_tokens_per_chunk: ${oc.env:GENVER_MAX_NEW_TOKENS_PER_CHUNK,400}
   max_image_side: ${oc.env:GENVER_MAX_IMAGE_SIDE,480}
-  logic_verifier_rounds: ${oc.env:GENVER_LOGIC_VERIFIER_ROUNDS,1}
-  logic_verifier_rounds_min: ${oc.env:GENVER_LOGIC_VERIFIER_ROUNDS_MIN,1}
-  logic_verifier_rounds_max: ${oc.env:GENVER_LOGIC_VERIFIER_ROUNDS_MAX,1}
-  logic_verifier_max_new_tokens: ${oc.env:GENVER_LOGIC_VERIFIER_MAX_NEW_TOKENS,128}
-  logic_self_verifier_prompt_path: ${oc.env:GENVER_LOGIC_SELF_VERIFIER_PROMPT_PATH,""}
-  gemini_logic_teacher_prompt_path: ${oc.env:GENVER_GEMINI_LOGIC_TEACHER_PROMPT_PATH,""}
+  verifier_rounds: ${oc.env:GENVER_VERIFIER_ROUNDS,1}
+  verifier_max_new_tokens: ${oc.env:GENVER_VERIFIER_MAX_NEW_TOKENS,128}
+  verifier_prompt_path: ${oc.env:GENVER_VERIFIER_PROMPT_PATH,""}
+  gemini_teacher_prompt_path: ${oc.env:GENVER_GEMINI_TEACHER_PROMPT_PATH,""}

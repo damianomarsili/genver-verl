@@ -41,43 +41,34 @@ class GenVerTrainingAgentLoop(GenVerGeminiObjectiveAgentLoop):
     def __init__(
         self,
         *args: Any,
-        logic_verifier_rounds: int = 1,
-        logic_verifier_rounds_min: Optional[int] = None,
-        logic_verifier_rounds_max: Optional[int] = None,
-        logic_verifier_max_new_tokens: int = 96,
-        logic_self_verifier_prompt_path: Optional[str] = None,
-        gemini_logic_teacher_prompt_path: Optional[str] = None,
+        verifier_rounds: int = 1,
+        verifier_max_new_tokens: int = 96,
+        verifier_prompt_path: Optional[str] = None,
+        gemini_teacher_prompt_path: Optional[str] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(
             *args,
             loc_verifier_rounds=0,
             logic_verifier_rounds=1,
-            logic_verifier_max_new_tokens=logic_verifier_max_new_tokens,
-            logic_self_verifier_prompt_path=logic_self_verifier_prompt_path,
-            gemini_logic_teacher_prompt_path=gemini_logic_teacher_prompt_path,
+            logic_verifier_max_new_tokens=verifier_max_new_tokens,
+            logic_self_verifier_prompt_path=verifier_prompt_path,
+            gemini_logic_teacher_prompt_path=gemini_teacher_prompt_path,
             **kwargs,
         )
 
         prompts_dir = self._resolve_training_prompts_dir()
-        if logic_self_verifier_prompt_path:
-            prompt_path = Path(logic_self_verifier_prompt_path)
+        if verifier_prompt_path:
+            prompt_path = Path(verifier_prompt_path)
         else:
-            prompt_path = prompts_dir / "genver_logic_self_verifier_instructions.txt"
+            prompt_path = prompts_dir / "genver_verifier_instructions.txt"
         self.logic_self_verifier_template = self._read_prompt_file(prompt_path)
 
         self.gemini_logic_teacher_prompt = load_gemini_prompt_template(
-            gemini_logic_teacher_prompt_path,
-            default_filename="genver_logic_teacher_judge_instructions.txt",
+            gemini_teacher_prompt_path,
+            default_filename="genver_teacher_judge_instructions.txt",
         )
-        fixed_rounds = max(0, int(logic_verifier_rounds))
-        rounds_min = fixed_rounds if logic_verifier_rounds_min is None else max(0, int(logic_verifier_rounds_min))
-        rounds_max = fixed_rounds if logic_verifier_rounds_max is None else max(0, int(logic_verifier_rounds_max))
-        if rounds_max < rounds_min:
-            rounds_max = rounds_min
-        self.logic_verifier_rounds = fixed_rounds
-        self.logic_verifier_rounds_min = int(rounds_min)
-        self.logic_verifier_rounds_max = int(rounds_max)
+        self.verifier_rounds = max(0, int(verifier_rounds))
         self.total_epochs = int(
             getattr(self.config.trainer, "total_epochs", 1) or 1
         )
@@ -85,23 +76,6 @@ class GenVerTrainingAgentLoop(GenVerGeminiObjectiveAgentLoop):
             self.steps_per_epoch = max(1, self.total_training_steps // self.total_epochs)
         else:
             self.steps_per_epoch = 1
-
-    def _sample_logic_verifier_rounds(
-        self,
-        *,
-        uid: str,
-        global_steps: int,
-    ) -> int:
-        rounds_min = max(0, int(self.logic_verifier_rounds_min))
-        rounds_max = max(rounds_min, int(self.logic_verifier_rounds_max))
-        if rounds_max <= rounds_min:
-            return rounds_min
-        digest = hashlib.sha1(
-            f"logic_rounds:{uid}:{global_steps}".encode("utf-8")
-        ).digest()
-        draw = int.from_bytes(digest[:8], byteorder="big")
-        span = rounds_max - rounds_min + 1
-        return int(rounds_min + (draw % span))
 
     def _choose_logic_edit_source(
         self,
@@ -280,10 +254,6 @@ class GenVerTrainingAgentLoop(GenVerGeminiObjectiveAgentLoop):
         ]
         genver_answer_logic_verifier_calls: list[dict[str, Any]] = []
 
-        sampled_logic_rounds = self._sample_logic_verifier_rounds(
-            uid=uid,
-            global_steps=global_steps,
-        )
         selected_edit_source_for_sample = self._choose_logic_edit_source(
             uid=uid,
             global_steps=global_steps,
@@ -291,7 +261,7 @@ class GenVerTrainingAgentLoop(GenVerGeminiObjectiveAgentLoop):
         )
         final_answer_call = dict(current_answer_aux_record)
 
-        for logic_round_index in range(sampled_logic_rounds):
+        for logic_round_index in range(self.verifier_rounds):
             logic_prompt_text = self._build_logic_self_verifier_prompt(query, current_answer_output)
             (
                 logic_output_text,
@@ -372,7 +342,7 @@ class GenVerTrainingAgentLoop(GenVerGeminiObjectiveAgentLoop):
 
             logic_call_record = {
                 "round_index": int(logic_round_index),
-                "sampled_logic_rounds": int(sampled_logic_rounds),
+                "verifier_rounds": int(self.verifier_rounds),
                 "answer_call_index": int(answer_call_index),
                 "logic_feedback": str(self_feedback),
                 "logic_feedback_parse_valid": bool(self_parse_valid),
