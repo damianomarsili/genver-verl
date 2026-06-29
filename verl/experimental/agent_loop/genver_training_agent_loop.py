@@ -28,14 +28,14 @@ from verl.experimental.agent_loop.genver_gemini_objective_agent_loop import (
 from training.gemini_objectives import load_gemini_prompt_template
 
 
-@register("genver_implicit_grounding_agent")
-class GenVerImplicitGroundingAgentLoop(GenVerGeminiObjectiveAgentLoop):
-    """Implicit-grounding Gemini loop.
+@register("genver_agent")
+class GenVerTrainingAgentLoop(GenVerGeminiObjectiveAgentLoop):
+    """GenVer training loop.
 
     Pipeline:
     query -> <reason><answer> -> logic self-verifier call(s) -> rewritten <reason><answer>.
 
-    No explicit grounding/bbox generation, no grounding verifier, no grounding context compaction.
+    This loop uses answer generation followed by self-verification and answer rewriting.
     """
 
     def __init__(
@@ -63,12 +63,12 @@ class GenVerImplicitGroundingAgentLoop(GenVerGeminiObjectiveAgentLoop):
         if logic_self_verifier_prompt_path:
             prompt_path = Path(logic_self_verifier_prompt_path)
         else:
-            prompt_path = prompts_dir / "logic_self_verifier_gemini_implicit_grounding_instructions.txt"
+            prompt_path = prompts_dir / "genver_logic_self_verifier_instructions.txt"
         self.logic_self_verifier_template = self._read_prompt_file(prompt_path)
 
         self.gemini_logic_teacher_prompt = load_gemini_prompt_template(
             gemini_logic_teacher_prompt_path,
-            default_filename="gemini_logic_teacher_judge_implicit_grounding_instructions.txt",
+            default_filename="genver_logic_teacher_judge_instructions.txt",
         )
         fixed_rounds = max(0, int(logic_verifier_rounds))
         rounds_min = fixed_rounds if logic_verifier_rounds_min is None else max(0, int(logic_verifier_rounds_min))
@@ -239,7 +239,7 @@ class GenVerImplicitGroundingAgentLoop(GenVerGeminiObjectiveAgentLoop):
             "num_preempted": -1,
         }
 
-        # Initial answer call (no explicit grounding).
+        # Initial answer call.
         (
             answer_prompt_text,
             answer_output_text,

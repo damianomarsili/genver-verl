@@ -16,7 +16,7 @@ from .agent_loop import AgentLoopBase, AgentLoopManager, AgentLoopWorker, AsyncL
 from .single_turn_agent_loop import SingleTurnAgentLoop
 from .genver_agent_loop import GenVerAgentLoop
 from .genver_gemini_objective_agent_loop import GenVerGeminiObjectiveAgentLoop
-from .genver_implicit_grounding_agent_loop import GenVerImplicitGroundingAgentLoop
+from .genver_training_agent_loop import GenVerTrainingAgentLoop
 from .tool_agent_loop import ToolAgentLoop
 
 _ = [
@@ -24,7 +24,7 @@ _ = [
     ToolAgentLoop,
     GenVerAgentLoop,
     GenVerGeminiObjectiveAgentLoop,
-    GenVerImplicitGroundingAgentLoop,
+    GenVerTrainingAgentLoop,
 ]
 
 __all__ = ["AgentLoopBase", "AgentLoopManager", "AsyncLLMServerManager", "AgentLoopWorker"]

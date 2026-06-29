@@ -1,5 +1,5 @@
-- name: genver_implicit_grounding_agent
-  _target_: verl.experimental.agent_loop.genver_implicit_grounding_agent_loop.GenVerImplicitGroundingAgentLoop
+- name: genver_agent
+  _target_: verl.experimental.agent_loop.genver_training_agent_loop.GenVerTrainingAgentLoop
   max_new_tokens_per_chunk: ${oc.env:GENVER_MAX_NEW_TOKENS_PER_CHUNK,400}
   max_image_side: ${oc.env:GENVER_MAX_IMAGE_SIDE,480}
   logic_verifier_rounds: ${oc.env:GENVER_LOGIC_VERIFIER_ROUNDS,1}

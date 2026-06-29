@@ -65,7 +65,7 @@ class LocEntry:
     coords: Tuple[float, ...]
 
 
-@register("genver_agent")
+@register("genver_base_agent")
 class GenVerAgentLoop(AgentLoopBase):
     def __init__(
         self,
