@@ -87,9 +87,14 @@ def get_ppo_ray_runtime_env():
     A filter function to return the PPO Ray runtime environment.
     To avoid repeat of some environment variables that are already set.
     """
-    working_dir = (
-        json.loads(os.environ.get(RAY_JOB_CONFIG_JSON_ENV_VAR, "{}")).get("runtime_env", {}).get("working_dir", None)
-    )
+    inherit_working_dir = str(os.environ.get("GENVER_RAY_INHERIT_WORKING_DIR", "")).lower() in {"1", "true", "yes"}
+    working_dir = None
+    if inherit_working_dir:
+        working_dir = (
+            json.loads(os.environ.get(RAY_JOB_CONFIG_JSON_ENV_VAR, "{}"))
+            .get("runtime_env", {})
+            .get("working_dir", None)
+        )
 
     runtime_env = {
         "env_vars": PPO_RAY_RUNTIME_ENV["env_vars"].copy(),
